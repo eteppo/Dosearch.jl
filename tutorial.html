@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="referrer" content="no-referrer"/><title>Tutorial: Bayesian g-formula · Dosearch.jl</title><meta name="title" content="Tutorial: Bayesian g-formula · Dosearch.jl"/><meta property="og:title" content="Tutorial: Bayesian g-formula · Dosearch.jl"/><meta property="twitter:title" content="Tutorial: Bayesian g-formula · Dosearch.jl"/><meta name="description" content="Documentation for Dosearch.jl."/><meta property="og:description" content="Documentation for Dosearch.jl."/><meta property="twitter:description" content="Documentation for Dosearch.jl."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="index.html">Dosearch.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="index.html">Home</a></li><li><a class="tocitem" href="guide.html">Identifying causal effects</a></li><li class="is-active"><a class="tocitem" href="tutorial.html">Tutorial: Bayesian g-formula</a><ul class="internal"><li><a class="tocitem" href="#A-follow-up-study"><span>A follow-up study</span></a></li><li><a class="tocitem" href="#Identification"><span>Identification</span></a></li><li><a class="tocitem" href="#Estimation"><span>Estimation</span></a></li><li><a class="tocitem" href="#Appendix:-derivation"><span>Appendix: derivation</span></a></li></ul></li><li><a class="tocitem" href="ldag.html">LDAGs</a></li><li><a class="tocitem" href="derivations.html">Step-by-step derivations</a></li><li><a class="tocitem" href="maximal.html">Maximal identifiable graphs</a></li><li><a class="tocitem" href="values.html">Building problems in code</a></li><li><a class="tocitem" href="differences.html">Differences from R</a></li><li><a class="tocitem" href="api.html">API reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href="tutorial.html">Tutorial: Bayesian g-formula</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="tutorial.html">Tutorial: Bayesian g-formula</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/eteppo/Dosearch.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial:-Bayesian-g-formula-with-Turing.jl"><a class="docs-heading-anchor" href="#Tutorial:-Bayesian-g-formula-with-Turing.jl">Tutorial: Bayesian g-formula with Turing.jl</a><a id="Tutorial:-Bayesian-g-formula-with-Turing.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial:-Bayesian-g-formula-with-Turing.jl" title="Permalink"></a></h1><p>This tutorial combines Dosearch.jl with <a href="https://turinglang.org">Turing.jl</a> in a Bayesian causal inference workflow:</p><ol><li>Write a model of a follow-up study in DynamicPPL, with unmeasured confounding, and simulate data from it.</li><li>Identify a causal effect nonparametrically with Dosearch.jl, with loss to follow-up encoded in three ways, and find how much unmeasured confounding the identification tolerates.</li><li>Fit the model to the data, predict the outcomes under each intervention with the posterior, and compute the effect from the predictions.</li></ol><pre><code class="language-julia hljs">using Dosearch, Turing, Enzyme, Random, Statistics</code></pre><h2 id="A-follow-up-study"><a class="docs-heading-anchor" href="#A-follow-up-study">A follow-up study</a><a id="A-follow-up-study-1"></a><a class="docs-heading-anchor-permalink" href="#A-follow-up-study" title="Permalink"></a></h2><p>Patients visit a clinic at times <span>$k = 0, 1, \ldots, K - 1$</span>. At visit <span>$k$</span>, we measure their severity <span>$L_k$</span> and decide on their treatment <span>$A_k$</span>. Before the next visit, a patient may be lost to follow-up (<span>$C_{k+1} = 1$</span>), and otherwise we learn whether they died (<span>$Y_{k+1} = 1$</span>). Nothing is observed after loss to follow-up or death, and death is absorbing.</p><p>Severity confounds treatment at every visit, and severity is itself affected by earlier treatment. Two causes are not measured: the patient&#39;s access to care <span>$V$</span> affects their severity at baseline and every treatment decision, and their frailty <span>$U$</span> affects their later severity and death. Loss to follow-up depends only on the measured past.</p><p>Every variable has a logistic model in its past, with coefficients shared over time, and the unmeasured causes are standard normal. The loadings <span>$\lambda \geq 0$</span> fix the direction of <span>$U$</span> and <span>$V$</span>. The same model generates the data and is fitted to them. It creates its variables itself, and data enter it only by conditioning. The argument <code>intervention</code> is a rule that sets treatment from the history of severity, and it prevents loss to follow-up. Without it, treatment and loss to follow-up follow their models.</p><pre><code class="language-julia hljs">@model function followup(N, K; intervention = nothing)
+    # column k + 1 of L and A is visit k, column k of C and Y the interval
+    # that ends at visit k
+    L, A, C, Y = (Matrix{Bool}(undef, N, K) for _ in 1:4)
+    α ~ Normal(0, 1.5)                                  # severity L₀
+    θL ~ filldist(Normal(0, 1.5), 3)                    # severity Lₖ: 1, Lₖ₋₁, Aₖ₋₁
+    θA ~ filldist(Normal(0, 1.5), 3)                    # treatment Aₖ: 1, Lₖ, Aₖ₋₁
+    θC ~ filldist(Normal(0, 1.5), 3)                    # loss Cₖ₊₁: 1, Lₖ, Aₖ
+    θY ~ filldist(Normal(0, 1.5), 4)                    # death Yₖ₊₁: 1, L₀, Lₖ, Aₖ
+    λ ~ filldist(truncated(Normal(0, 1); lower = 0), 4) # V → L₀, V → A, U → L, U → Y
+    U ~ filldist(Normal(), N)                           # frailty
+    V ~ filldist(Normal(), N)                           # access to care
+    for i in 1:N
+        for k in 1:K                                    # visit k - 1 and the interval after it
+            if k == 1
+                L[i, k] ~ BernoulliLogit(α + λ[1] * V[i])
+            else
+                L[i, k] ~ BernoulliLogit(θL[1] + θL[2] * L[i, k - 1] + θL[3] * A[i, k - 1] + λ[3] * U[i])
+            end
+            if intervention === nothing
+                previous = k == 1 ? false : A[i, k - 1]
+                A[i, k] ~ BernoulliLogit(θA[1] + θA[2] * L[i, k] + θA[3] * previous + λ[2] * V[i])
+                C[i, k] ~ BernoulliLogit(θC[1] + θC[2] * L[i, k] + θC[3] * A[i, k])
+            else
+                A[i, k] = intervention(L[i, 1:k])
+                C[i, k] = false
+            end
+            C[i, k] &amp;&amp; break                            # lost: nothing more is observed
+            Y[i, k] ~ BernoulliLogit(θY[1] + θY[2] * L[i, 1] + θY[3] * L[i, k] + θY[4] * A[i, k] + λ[4] * U[i])
+            Y[i, k] &amp;&amp; break                            # dead
+        end
+    end
+end</code></pre><p>To simulate a study, we set the parameters to their true values with <code>fix</code> and draw from the model. We keep what is observed: <code>L</code>, <code>A</code>, <code>C</code> and <code>Y</code>, with <code>missing</code> for what was not measured.</p><pre><code class="language-julia hljs">true_parameters = (α = -0.4, θL = [-1.0, 1.5, -1.0], θA = [-0.5, 1.0, 1.0],
+                   θC = [-2.5, 0.5, 0.3], θY = [-2.0, 0.8, 1.0, -1.0], λ = [0.8, 1.0, 1.0, 1.0])
+
+value(draw, vn) = haskey(draw, vn) ? draw[vn] : missing
+observations(draw, N, K) = (L = [value(draw, @varname(L[i, k])) for i in 1:N, k in 1:K],
+                            A = [value(draw, @varname(A[i, k])) for i in 1:N, k in 1:K],
+                            C = [value(draw, @varname(C[i, k])) for i in 1:N, k in 1:K],
+                            Y = [value(draw, @varname(Y[i, k])) for i in 1:N, k in 1:K])
+
+N, K = 1000, 2
+data = observations(rand(Xoshiro(1), fix(followup(N, K), true_parameters)), N, K)
+(lost = count(isequal(true), data.C), died = count(isequal(true), data.Y))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(lost = 192, died = 296)</code></pre><h2 id="Identification"><a class="docs-heading-anchor" href="#Identification">Identification</a><a id="Identification-1"></a><a class="docs-heading-anchor-permalink" href="#Identification" title="Permalink"></a></h2><p>We want the risk of death by the end of follow-up if every patient were treated at every visit, compared with nobody being treated, and nobody were lost to follow-up: <span>$P(Y_2 = 1 \mid \mathrm{do}(A_0 = a, A_1 = a, C_1 = 0, C_2 = 0))$</span> for <span>$a = 1$</span> and <span>$a = 0$</span>. As in Robins&#39; approach to censoring, loss to follow-up is intervened on like a treatment.</p><p>Without knowing the true model, we can still defend its causal graph: which variables may affect which. Here it has an edge for every variable in the model of another one, and the unmeasured causes <span>$U$</span> and <span>$V$</span>. Since only survivors are measured, death also points to everything measured after it. Loss to follow-up <span>$C_k$</span> depends only on the measured past, and it points to nothing: it hides the later variables but does not change them.</p><p><img src="assets/followup_dag.svg" alt="The causal graph of the follow-up study with two intervals"/></p><p>We give Dosearch.jl the measured part of the graph, and add the unmeasured causes as candidates, <code>LatentCause</code>s of the variables they affect. The data are what we know: the baseline and the first loss to follow-up for every patient, and then each interval among the patients followed in it.</p><pre><code class="language-julia hljs">causal_graph = &quot;&quot;&quot;
+    L₀ -&gt; A₀
+    L₀ -&gt; Y₁
+    A₀ -&gt; Y₁
+    L₀ -&gt; L₁
+    A₀ -&gt; L₁
+    Y₁ -&gt; L₁
+    A₀ -&gt; A₁
+    L₁ -&gt; A₁
+    Y₁ -&gt; A₁
+    L₀ -&gt; Y₂
+    L₁ -&gt; Y₂
+    A₁ -&gt; Y₂
+    Y₁ -&gt; Y₂
+&quot;&quot;&quot;
+censoring = &quot;&quot;&quot;
+    L₀ -&gt; C₁
+    A₀ -&gt; C₁
+    Y₁ -&gt; C₂
+    L₁ -&gt; C₂
+    A₁ -&gt; C₂
+&quot;&quot;&quot;
+inputs = &quot;&quot;&quot;
+    p(L₀, A₀, C₁)
+    p(Y₁, L₁, A₁, C₂ | L₀, A₀, C₁)
+    p(Y₂ | L₀, A₀, C₁, Y₁, L₁, A₁, C₂)
+&quot;&quot;&quot;
+problem = DosearchProblem(inputs, &quot;p(Y₂ | do(A₀, A₁, C₁, C₂))&quot;, causal_graph * censoring)
+unmeasured = [LatentCause(&quot;L₀&quot;, &quot;A₀&quot;, &quot;A₁&quot;), LatentCause(&quot;L₁&quot;, &quot;Y₁&quot;, &quot;Y₂&quot;)]
+r = dosearch(with_candidates(problem, unmeasured))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">\sum_{Y₁,L₁,L₀}\left(p(L₀)\left(p(Y₁,L₁|A₀,C₁,L₀)p(Y₂|A₀,Y₁,L₁,A₁,C₁,C₂,L₀)\right)\right)</code></pre><p>The effect is identifiable despite <span>$U$</span> and <span>$V$</span>, by the g-formula</p><p class="math-container">\[\begin{aligned}
+&amp;P(y_2 \mid \mathrm{do}(a_0, a_1, C_1 = 0, C_2 = 0)) \\
+&amp;\quad = \sum_{l_0, y_1, l_1} P(l_0)\, P(y_1, l_1 \mid l_0, a_0, C_1 = 0)\,
+P(y_2 \mid l_0, a_0, C_1 = 0, y_1, l_1, a_1, C_2 = 0).
+\end{aligned}\]</p><p>The <a href="tutorial.html#Appendix:-derivation">appendix</a> derives it step by step.</p><p>The inputs claim more than we know. Conditioning on <span>$C_1$</span> means that Dosearch.jl takes <span>$P(Y_1, L_1, A_1, C_2 \mid L_0, A_0, C_1)$</span> as known for both values of <span>$C_1$</span>, but we know it only for the patients still followed, with <span>$C_1 = 0$</span>. An input of a DAG cannot fix a variable to a value, so this is the closest we can write. The formula is still valid, because it uses the inputs only where we know them: it conditions on <span>$C_1$</span> and <span>$C_2$</span> at their intervened values, 0, and never sums over them. A formula that summed over <span>$C_1$</span> would use the outcomes of patients after they were lost, so formulas from this encoding need that check. The other encodings below state exactly what we know, and give the same formula.</p><p>Each factor is estimated from the patients followed at that time: <span>$P(l_0)$</span> from all patients, the second factor from those followed in the first interval, and the last from those followed in both. A complete-case analysis, which estimates every factor from the patients followed to the end, would be biased, since loss to follow-up depends on severity and treatment.</p><p>Nothing is measured after death. For a patient who died in the first interval, we set <span>$L_1$</span>, <span>$A_1$</span> and <span>$C_2$</span> to 0, and <span>$Y_2 = 1$</span>: <span>$Y_k$</span> is death by visit <span>$k$</span>. Then no patient who died has <span>$A_1 = 1$</span>, and the last factor is not estimable for them: positivity fails. It is 1, since death is absorbing, but Dosearch.jl does not know this: it is a fact about the outcome, not about the graph. With the hazards of death <span>$h_1 = P(Y_1 = 1 \mid l_0, a_0, C_1 = 0)$</span> and <span>$h_2 = P(Y_2 = 1 \mid l_0, a_0, C_1 = 0, Y_1 = 0, l_1, a_1, C_2 = 0)$</span>, which are estimable, the risk is</p><p class="math-container">\[\begin{aligned}
+&amp;P(Y_2 = 1 \mid \mathrm{do}(a_0, a_1, C_1 = 0, C_2 = 0)) \\
+&amp;\quad = \sum_{l_0} P(l_0)
+\Big(h_1 + (1 - h_1) \sum_{l_1} P(l_1 \mid l_0, a_0, C_1 = 0, Y_1 = 0)\, h_2\Big).
+\end{aligned}\]</p><h3 id="Sequential-exchangeability"><a class="docs-heading-anchor" href="#Sequential-exchangeability">Sequential exchangeability</a><a id="Sequential-exchangeability-1"></a><a class="docs-heading-anchor-permalink" href="#Sequential-exchangeability" title="Permalink"></a></h3><p>Two steps of the derivation use rule 2, one per visit: <span>$(Y_1, L_1, Y_2 \perp\!\!\!\perp A_0, C_1 \mid L_0, A_1, C_2)$</span> in the graph without the edges out of <span>$A_0$</span> and <span>$C_1$</span> and into <span>$A_1$</span> and <span>$C_2$</span>, and <span>$(Y_2 \perp\!\!\!\perp A_1, C_2 \mid L_0, A_0, C_1, Y_1, L_1)$</span> in the graph without the edges out of <span>$A_1$</span> and <span>$C_2$</span>. These are sequential exchangeability for treatment and censoring, in graphical form: at each visit, treatment and staying in follow-up are independent of the future given the measured past, with the later treatment and censoring set by the intervention.</p><p>So one search for the joint intervention checks every visit. A search per visit would ask about one treatment at a time, with the others left as they are, and that is a different question. Here access to care <span>$V$</span> affects both treatments, so the effect of <span>$A_0$</span> alone is not identifiable, although the joint effect is:</p><pre><code class="language-julia hljs">first_alone = DosearchProblem(inputs, &quot;p(Y₂ | do(A₀, C₁, C₂))&quot;, causal_graph * censoring)
+dosearch(with_candidates(first_alone, unmeasured))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">The query p(Y₂ | do(A₀, C₁, C₂)) is not identifiable by do-search.</code></pre><h3 id="Other-encodings"><a class="docs-heading-anchor" href="#Other-encodings">Other encodings</a><a id="Other-encodings-1"></a><a class="docs-heading-anchor-permalink" href="#Other-encodings" title="Permalink"></a></h3><p>Pearl&#39;s school describes the same data with selection nodes or with missingness indicators instead of interventions on loss to follow-up. Dosearch.jl supports both, and they give the same formula. So does an LDAG, which can fix variables to values in the inputs.</p><p>A selection node <span>$S_k = 1 - C_k$</span> is 1 for the patients followed in interval <span>$k$</span>. A distribution that conditions on a selection node is known only among the selected, which is what we know. The query no longer intervenes on loss to follow-up:</p><pre><code class="language-julia hljs">selection_inputs = &quot;&quot;&quot;
+    p(L₀, A₀)
+    p(Y₁, L₁, A₁ | L₀, A₀, S₁)
+    p(Y₂ | L₀, A₀, S₁, Y₁, L₁, A₁, S₂)
+&quot;&quot;&quot;
+selection_graph = causal_graph * &quot;&quot;&quot;
+    L₀ -&gt; S₁
+    A₀ -&gt; S₁
+    Y₁ -&gt; S₂
+    L₁ -&gt; S₂
+    A₁ -&gt; S₂
+&quot;&quot;&quot;
+selection = DosearchProblem(selection_inputs, &quot;p(Y₂ | do(A₀, A₁))&quot;, selection_graph;
+                            selection_bias = &quot;S₁, S₂&quot;)
+dosearch(with_candidates(selection, unmeasured))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">\sum_{Y₁,L₁,L₀}\left(p(L₀)\left(p(Y₁,L₁|A₀,L₀,S₁)p(Y₂|A₀,Y₁,L₁,A₁,L₀,S₁,S₂)\right)\right)</code></pre><p>With missingness indicators, each variable that may be missing has a response indicator, 1 if the variable is observed, and a proxy, which is the variable where it is observed and missing otherwise: <span>$R_{Y_1}$</span> and <span>$Y_1^*$</span> for <span>$Y_1$</span>, and so on. The data are the distribution of the proxies and the indicators, which is what we observe. The indicators of <span>$Y_1$</span>, <span>$L_1$</span> and <span>$A_1$</span> are equal, which a graph cannot express, so the graph lets the last two depend on the first. This search takes about a minute.</p><pre><code class="language-julia hljs">missingness_graph = causal_graph * &quot;&quot;&quot;
+    L₀ -&gt; R_Y₁
+    A₀ -&gt; R_Y₁
+    R_Y₁ -&gt; R_L₁
+    R_Y₁ -&gt; R_A₁
+    R_Y₁ -&gt; R_Y₂
+    Y₁ -&gt; R_Y₂
+    L₁ -&gt; R_Y₂
+    A₁ -&gt; R_Y₂
+&quot;&quot;&quot;
+missingness = DosearchProblem(&quot;p(L₀, A₀, Y₁*, L₁*, A₁*, Y₂*, R_Y₁, R_L₁, R_A₁, R_Y₂)&quot;,
+                              &quot;p(Y₂ | do(A₀, A₁))&quot;, missingness_graph;
+                              missing_data = &quot;R_Y₁ : Y₁, R_L₁ : L₁, R_A₁ : A₁, R_Y₂ : Y₂&quot;)
+r_missingness = dosearch(with_candidates(missingness, unmeasured))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">\sum_{Y₁,L₁,L₀}\left(\left(p(L₀)p(Y₁*,L₁*|R_Y₁,R_L₁,A₀,L₀)\right)p(Y₂|Y₁,R_Y₁ = 1,L₁,R_L₁ = 1,A₁,R_A₁ = 1,R_Y₂ = 1,A₀,L₀)\right)</code></pre><p>Both are the g-formula above, with selection or observation (<span>$S = 1$</span> or <span>$R = 1$</span>) in place of the intervention <span>$C = 0$</span>. Writing <span>$R = 1$</span> for all four response indicators being 1:</p><p class="math-container">\[\begin{aligned}
+&amp;P(y_2 \mid \mathrm{do}(a_0, a_1)) \\
+&amp;\quad = \sum_{l_0, y_1, l_1} P(l_0)\, P(y_1, l_1 \mid l_0, a_0, S_1 = 1)\,
+P(y_2 \mid l_0, a_0, y_1, l_1, a_1, S_1 = S_2 = 1) \\
+&amp;\quad = \sum_{l_0, y_1, l_1} P(l_0)\, P(y_1^*, l_1^* \mid l_0, a_0, R_{Y_1} = R_{L_1} = 1)\,
+P(y_2 \mid l_0, a_0, y_1, l_1, a_1, R = 1).
+\end{aligned}\]</p><p>The notation of the R package, which the formula follows, leaves <span>$R_{Y_1} = R_{L_1} = 1$</span> implicit in the second factor; the derivation writes it out. The derivations also show how the encodings meet. Before either uses the data, a step by rule 3 intervenes on the selection nodes or on the response indicators, which is valid because these affect none of the other variables. So the Pearl-style derivations intervene on loss to follow-up too. The <a href="tutorial.html#Appendix:-derivation">appendix</a> shows the derivation with missingness indicators.</p><p>Finally, a <a href="ldag.html">labeled DAG</a> can say literally that the inputs are known for <span>$C_1 = 0$</span> and <span>$C_2 = 0$</span>, since its distributions can fix variables to values. Interventions are explicit nodes such as <span>$I_{A_0}$</span>: the edges into an intervened variable vanish when its intervention node is 1. The unmeasured causes are explicit latent nodes, and the query sets <span>$C_1 = C_2 = 0$</span> with their intervention nodes.</p><pre><code class="language-julia hljs">ldag_graph = &quot;&quot;&quot;
+    I_A₀ -&gt; A₀
+    I_A₁ -&gt; A₁
+    I_C₁ -&gt; C₁
+    I_C₂ -&gt; C₂
+    V -&gt; L₀
+    V -&gt; A₀ : I_A₀ = 1
+    L₀ -&gt; A₀ : I_A₀ = 1
+    L₀ -&gt; C₁ : I_C₁ = 1
+    A₀ -&gt; C₁ : I_C₁ = 1
+    U -&gt; Y₁
+    L₀ -&gt; Y₁
+    A₀ -&gt; Y₁
+    U -&gt; L₁
+    L₀ -&gt; L₁
+    A₀ -&gt; L₁
+    Y₁ -&gt; L₁
+    V -&gt; A₁ : I_A₁ = 1
+    A₀ -&gt; A₁ : I_A₁ = 1
+    L₁ -&gt; A₁ : I_A₁ = 1
+    Y₁ -&gt; A₁ : I_A₁ = 1
+    Y₁ -&gt; C₂ : I_C₂ = 1
+    L₁ -&gt; C₂ : I_C₂ = 1
+    A₁ -&gt; C₂ : I_C₂ = 1
+    U -&gt; Y₂
+    L₀ -&gt; Y₂
+    L₁ -&gt; Y₂
+    A₁ -&gt; Y₂
+    Y₁ -&gt; Y₂
+&quot;&quot;&quot;
+ldag_inputs = &quot;&quot;&quot;
+    p(L₀, A₀, C₁)
+    p(Y₁, L₁, A₁, C₂ | L₀, A₀, C₁ = 0)
+    p(Y₂ | L₀, A₀, C₁ = 0, Y₁, L₁, A₁, C₂ = 0)
+&quot;&quot;&quot;
+ldag_query = &quot;p(Y₂ | A₀, A₁, C₁ = 0, C₂ = 0, I_A₀ = 1, I_A₁ = 1, I_C₁ = 1, I_C₂ = 1)&quot;
+dosearch(DosearchProblem(ldag_inputs, ldag_query, ldag_graph))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">\sum_{L₀,Y₁,L₁}\left(p(L₀)\left(p(Y₁,L₁|A₀,C₁ = 0,L₀)p(Y₂|A₀,A₁,C₁ = 0,C₂ = 0,L₀,Y₁,L₁)\right)\right)</code></pre><p>This is the g-formula exactly as written above.</p><h3 id="Unmeasured-confounding"><a class="docs-heading-anchor" href="#Unmeasured-confounding">Unmeasured confounding</a><a id="Unmeasured-confounding-1"></a><a class="docs-heading-anchor-permalink" href="#Unmeasured-confounding" title="Permalink"></a></h3><p>How much unmeasured confounding could there be? The maximal identifiable graphs answer this: every maximal set of pairs of variables that can have an unmeasured common cause while the effect stays identifiable. We search with selection nodes, where Dosearch.jl uses the data only among the patients followed, so every set it finds is identifiable from what we know. We assume that loss to follow-up shares no unmeasured cause with the other variables, so the candidates are the pairs of the other variables.</p><pre><code class="language-julia hljs">selected = (&quot;S₁&quot;, &quot;S₂&quot;)
+candidates = [c for c in confounding_candidates(selection) if c.x ∉ selected &amp;&amp; c.y ∉ selected]
+maximal = maximal_identifiable_graphs(selection; candidates)
+length(maximal)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">13</code></pre><p>Our confounding is one of these maximal sets: an unmeasured common cause of any further pair of variables would make the effect non-identifiable.</p><pre><code class="language-julia hljs">ours = Set(BidirectedPair(x, y) for c in unmeasured for x in c.variables for y in c.variables if x &lt; y)
+ours in Set.(maximal)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h2 id="Estimation"><a class="docs-heading-anchor" href="#Estimation">Estimation</a><a id="Estimation-1"></a><a class="docs-heading-anchor-permalink" href="#Estimation" title="Permalink"></a></h2><p>We condition the model on the data with <code>|</code> and sample from the posterior with NUTS, using Enzyme for the gradients. Conditioning on a matrix with <code>missing</code> values conditions on the observed values only. The likelihood then has a factor for each variable of each patient while followed, so each part of the model is fitted to the patients followed at that time, as in the identifying formula.</p><pre><code class="language-julia hljs">model = followup(N, K) | data
+chain = sample(Xoshiro(2), model, NUTS(; adtype = AutoEnzyme()), 500; progress = false)</code></pre><p>An intervention is a rule from the history of severity to treatment. Besides the static rules, always and never treat, it can be dynamic, such as treating whenever the current severity is high. The same g-formula identifies such a rule, with <span>$a_k$</span> set by the rule.</p><pre><code class="language-julia hljs">always(history) = true
+never(history) = false
+when_severe(history) = last(history)</code></pre><p>For each intervention, <code>predict</code> simulates the follow-up of the patients from their observed baseline severity and their posterior frailty, for every posterior draw. This computes the identifying formula by simulation (the parametric g-formula), since the fitted model contains every factor of it. Then we compute the risk of death by the end of follow-up in each draw.</p><pre><code class="language-julia hljs">function predict_followup(chain, data, intervention)
+    N, K = size(data.Y)
+    baseline = (L = [k == 1 ? data.L[i, 1] : missing for i in 1:N, k in 1:K],)
+    return predict(Xoshiro(3), followup(N, K; intervention) | baseline, chain)
+end
+
+function risk(predictions, N, K)
+    deaths = zeros(size(predictions, 1))
+    for i in 1:N
+        died = falses(length(deaths))
+        for k in 1:K
+            died .|= isequal.(vec(predictions[@varname(Y[i, k])]), true)
+        end
+        deaths .+= died
+    end
+    return deaths ./ N
+end
+
+risks = Dict(rule =&gt; risk(predict_followup(chain, data, rule), N, K)
+             for rule in (always, never, when_severe))</code></pre><p>The posterior of the effects, as risk differences with never treating:</p><pre><code class="language-julia hljs">summarize(draws) = (mean = round(mean(draws), digits = 3),
+                    interval_95 = round.(quantile(draws, [0.025, 0.975]), digits = 3))
+(always = summarize(risks[always] .- risks[never]),
+ when_severe = summarize(risks[when_severe] .- risks[never]))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(always = (mean = -0.229, interval_95 = [-0.301, -0.158]), when_severe = (mean = -0.122, interval_95 = [-0.171, -0.077]))</code></pre><p>To check them, we simulate a large population from the true model under each intervention:</p><pre><code class="language-julia hljs">function true_risk(intervention; N = 100_000, K = 2)
+    draw = rand(Xoshiro(0), fix(followup(N, K; intervention), true_parameters))
+    return mean(any(k -&gt; isequal(value(draw, @varname(Y[i, k])), true), 1:K) for i in 1:N)
+end
+(always = round(true_risk(always) - true_risk(never), digits = 3),
+ when_severe = round(true_risk(when_severe) - true_risk(never), digits = 3))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(always = -0.194, when_severe = -0.102)</code></pre><p>Treating at every visit reduces the risk of death substantially, treating only when severe less, and the 95% posterior intervals cover the true effects.</p><p>The workflow carries over to other studies and longer follow-ups. Dosearch.jl tells from the causal graph alone whether an effect is a function of the observed data, and how much unmeasured confounding that survives. A model of the data then gives the posterior of the effect.</p><h2 id="Appendix:-derivation"><a class="docs-heading-anchor" href="#Appendix:-derivation">Appendix: derivation</a><a id="Appendix:-derivation-1"></a><a class="docs-heading-anchor-permalink" href="#Appendix:-derivation" title="Permalink"></a></h2><p>The derivation of the identifying formula from the query, by <a href="api.html#Markdown.latex"><code>latex</code></a>:</p><p class="math-container">\[\begin{aligned}
+&amp;p(Y_{2} \mid \mathrm{do}(A_{0}, A_{1}, C_{1}, C_{2})) \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}, L_{1}, Y_{2}, L_{0} \mid \mathrm{do}(A_{0}, A_{1}, C_{1}, C_{2})) \\
+&amp;\qquad \text{marginalization} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0} \mid \mathrm{do}(A_{0}, A_{1}, C_{1}, C_{2})) p(Y_{1}, L_{1}, Y_{2} \mid \mathrm{do}(A_{0}, A_{1}, C_{1}, C_{2}), L_{0}) \\
+&amp;\qquad \text{chain rule} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}, L_{1}, Y_{2} \mid \mathrm{do}(A_{0}, A_{1}, C_{1}, C_{2}), L_{0}) \\
+&amp;\qquad \text{rule 3: } (L_{0} \perp\!\!\!\perp \{A_{0}, A_{1}, C_{1}, C_{2}\})_{\mathcal{G}_{\overline{A_{0}, A_{1}, C_{1}, C_{2}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}, L_{1}, Y_{2} \mid \mathrm{do}(A_{1}, C_{2}), A_{0}, C_{1}, L_{0}) \\
+&amp;\qquad \text{rule 2: } (\{Y_{1}, L_{1}, Y_{2}\} \perp\!\!\!\perp \{A_{0}, C_{1}\} \mid A_{1}, C_{2}, L_{0})_{\mathcal{G}_{\overline{A_{1}, C_{2}}\,\underline{A_{0}, C_{1}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}, L_{1} \mid \mathrm{do}(A_{1}, C_{2}), A_{0}, C_{1}, L_{0}) p(Y_{2} \mid \mathrm{do}(A_{1}, C_{2}), A_{0}, Y_{1}, L_{1}, C_{1}, L_{0}) \\
+&amp;\qquad \text{chain rule} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}, L_{1} \mid A_{0}, C_{1}, L_{0}) p(Y_{2} \mid \mathrm{do}(A_{1}, C_{2}), A_{0}, Y_{1}, L_{1}, C_{1}, L_{0}) \\
+&amp;\qquad \text{rule 3: } (\{Y_{1}, L_{1}\} \perp\!\!\!\perp \{A_{1}, C_{2}\} \mid A_{0}, C_{1}, L_{0})_{\mathcal{G}_{\overline{A_{1}, C_{2}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}, L_{1} \mid A_{0}, C_{1}, L_{0}) p(Y_{2} \mid A_{0}, Y_{1}, L_{1}, A_{1}, C_{1}, C_{2}, L_{0}) \\
+&amp;\qquad \text{rule 2: } (Y_{2} \perp\!\!\!\perp \{A_{1}, C_{2}\} \mid A_{0}, Y_{1}, L_{1}, C_{1}, L_{0})_{\mathcal{G}_{\underline{A_{1}, C_{2}}}}
+\end{aligned}
+\]</p><p>With missingness indicators instead, the first steps intervene on the response indicators:</p><p class="math-container">\[\begin{aligned}
+&amp;p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0})) \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}, L_{1}, Y_{2}, L_{0} \mid \mathrm{do}(A_{1}, A_{0})) \\
+&amp;\qquad \text{marginalization} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}, L_{1}, L_{0} \mid \mathrm{do}(A_{1}, A_{0})) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{chain rule} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}, L_{1}, L_{0} \mid \mathrm{do}(A_{0})) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{rule 3: } (\{Y_{1}, L_{1}, L_{0}\} \perp\!\!\!\perp A_{1} \mid A_{0})_{\mathcal{G}_{\overline{A_{0}}\,\overline{A_{1}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}, L_{1}, L_{0} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0})) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{rule 3: } (\{Y_{1}, L_{1}, L_{0}\} \perp\!\!\!\perp \{R_{Y_{1}}, R_{L_{1}}\} \mid A_{0})_{\mathcal{G}_{\overline{A_{0}}\,\overline{R_{Y_{1}}, R_{L_{1}}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(Y_{1}^{*}, L_{1}^{*}, L_{0} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0})) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad Y_{1}^{*} = Y_{1} \text{ if } R_{Y_{1}} = 1, L_{1}^{*} = L_{1} \text{ if } R_{L_{1}} = 1 \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0})) p(Y_{1}^{*}, L_{1}^{*} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0}), L_{0}) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{chain rule} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}^{*}, L_{1}^{*} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0}), L_{0}) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{rule 3: } (L_{0} \perp\!\!\!\perp \{R_{Y_{1}}, R_{L_{1}}, A_{0}\})_{\mathcal{G}_{\overline{R_{Y_{1}}, R_{L_{1}}, A_{0}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}^{*}, L_{1}^{*} \mid R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0}, L_{0}) p(Y_{2} \mid \mathrm{do}(A_{1}, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{rule 2: } (\{Y_{1}^{*}, L_{1}^{*}\} \perp\!\!\!\perp \{R_{Y_{1}}, R_{L_{1}}, A_{0}\} \mid L_{0})_{\mathcal{G}_{\underline{R_{Y_{1}}, R_{L_{1}}, A_{0}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}^{*}, L_{1}^{*} \mid R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0}, L_{0}) p(Y_{2} \mid \mathrm{do}(R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{1}, R_{A_{1}} = 1, R_{Y_{2}} = 1, A_{0}), Y_{1}, L_{1}, L_{0}) \\
+&amp;\qquad \text{rule 3: } (Y_{2} \perp\!\!\!\perp \{R_{Y_{1}}, R_{L_{1}}, R_{A_{1}}, R_{Y_{2}}\} \mid Y_{1}, L_{1}, A_{1}, A_{0}, L_{0})_{\mathcal{G}_{\overline{A_{1}, A_{0}}\,\overline{R_{Y_{1}}, R_{L_{1}}, R_{A_{1}}, R_{Y_{2}}}}} \\
+&amp;= \sum_{Y_{1}, L_{1}, L_{0}} p(L_{0}) p(Y_{1}^{*}, L_{1}^{*} \mid R_{Y_{1}} = 1, R_{L_{1}} = 1, A_{0}, L_{0}) p(Y_{2} \mid Y_{1}, R_{Y_{1}} = 1, L_{1}, R_{L_{1}} = 1, A_{1}, R_{A_{1}} = 1, R_{Y_{2}} = 1, A_{0}, L_{0}) \\
+&amp;\qquad \text{rule 2: } (Y_{2} \perp\!\!\!\perp \{R_{Y_{1}}, R_{L_{1}}, A_{1}, R_{A_{1}}, R_{Y_{2}}, A_{0}\} \mid Y_{1}, L_{1}, L_{0})_{\mathcal{G}_{\underline{R_{Y_{1}}, R_{L_{1}}, A_{1}, R_{A_{1}}, R_{Y_{2}}, A_{0}}}}
+\end{aligned}
+\]</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="guide.html">« Identifying causal effects</a><a class="docs-footer-nextpage" href="ldag.html">LDAGs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.20.0 on <span class="colophon-date" title="Friday 20 November 2026 13:05">Friday 20 November 2026</span>. Using Julia version 1.13.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
