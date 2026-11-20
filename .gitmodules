@@ -1,0 +1,4 @@
+[submodule "reference/dosearch"]
+	path = reference/dosearch
+	url = https://github.com/santikka/dosearch.git
+	shallow = true

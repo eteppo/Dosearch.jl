@@ -1,0 +1,22 @@
+# Julia
+Manifest.toml
+Manifest-v*.toml
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+/docs/build/
+/docs/Manifest*.toml
+/LocalPreferences.toml
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# R artefacts produced when generating reference results
+.Rhistory
+.RData
+.Rproj.user/
+
+# Throwaway experiments
+/scratch/
